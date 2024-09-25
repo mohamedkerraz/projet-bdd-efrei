@@ -1,0 +1,49 @@
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+      - mongodb
+      - neo4j
+    environment:
+      - MYSQL_HOST=mysql
+      - MONGO_URI=mongodb://mongodb:27017/food_shop
+      - NEO4J_URI=bolt://neo4j:7687
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: food_shop
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  neo4j:
+    image: neo4j:latest
+    environment:
+      NEO4J_AUTH: neo4j/password
+    volumes:
+      - ./neo4j-init:/var/lib/neo4j/import
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
